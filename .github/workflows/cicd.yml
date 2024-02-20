@@ -1,54 +1,47 @@
-name: CI/CD Pipeline
+name: To-do App DevOps Pipeline
+
 on:
   push:
-    branches:
-      - dev
-  workflow_dispatch:
+    branches: [ dev ]
 
 jobs:
-  deploy:
+  deploy-iac:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # Run Terraform steps if changes are made in the 'iac' folder
-      - name: Terraform
-        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'iac')
-        uses: hashicorp/setup-terraform@v1
+      - name: Store Branch Name
+        run: echo "Branch_Name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+      - name: Login to AWS
+        uses: aws-actions/configure-aws@v1
         with:
-          terraform_version: <version>
-          
-      - name: Terraform Init and Plan
-        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'iac')
-        run: |
-          cd iac
-          terraform init
-          terraform plan -var-file="./terraform-tfvars/dev.tfvars"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: ${{ secrets.AWS_REGION }}
 
-      - name: Terraform Apply
-        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'iac')
-        run: |
-          cd iac
-          echo "Do you want to apply the Terraform changes? (yes/no)"
-          read apply_confirmation
-          if [ "$apply_confirmation" == "yes" ]; then
-            terraform apply -var-file="./terraform-tfvars/dev.tfvars" --auto-approve
-          else
-            echo "Terraform apply skipped."
-          fi
+      - name: Initialize Terraform
+        run: terraform init -path iaac
 
-      # Docker Build and Push Job
-      - name: Build and Push Docker Images
-        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'src')
+      - name: Plan Terraform changes
         run: |
-          echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin <your-aws-account-id>.dkr.ecr.<region>.amazonaws.com
-          docker build -t ${{ steps.terraform.outputs.ecr_repo_uri }}/client:latest ./src/client
-          docker push ${{ steps.terraform.outputs.ecr_repo_uri }}/client:latest
-          docker build -t ${{ steps.terraform.outputs.ecr_repo_uri }}/server:latest ./src/server
-          docker push ${{ steps.terraform.outputs.ecr_repo_uri }}/server:latest
+          terraform plan -path iaac -var-file="./iaac/terraformtfvars/${Branch_Name}.tfvars" > plan.out
 
-      # Deployment Release Job
-      - name: Release Deployments
-        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'eks')
-        run: kubectl apply -f eks/
+      - name: Prompt for confirmation
+        uses: marocchino/sticky-actions@v1
+        with:
+          inputs: |
+            terraform_plan: $(cat plan.out)
+          message: |
+            The following Terraform changes will be applied:
+            {{ .terraform_plan }}
+
+            Are you sure you want to continue? (yes/no)
+
+      - name: Apply Terraform changes on confirmation
+        if: steps.prompt-for-confirmation.outputs.selection == 'yes'
+        run: terraform apply -path iaac -var-file="./iaac/terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
+
+      - name: Save ECR repository name
+        run: echo "ECR_REPOSITORY_NAME=$(terraform output -raw module.ecr_repo.ecr_repository_url)" >> $GITHUB_ENV`
