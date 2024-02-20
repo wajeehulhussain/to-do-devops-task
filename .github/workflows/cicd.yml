@@ -1,1 +1,54 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      # Run Terraform steps if changes are made in the 'iac' folder
+      - name: Terraform
+        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'iac')
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: <version>
+          
+      - name: Terraform Init and Plan
+        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'iac')
+        run: |
+          cd iac
+          terraform init
+          terraform plan -var-file="./terraform-tfvars/dev.tfvars"
+
+      - name: Terraform Apply
+        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'iac')
+        run: |
+          cd iac
+          echo "Do you want to apply the Terraform changes? (yes/no)"
+          read apply_confirmation
+          if [ "$apply_confirmation" == "yes" ]; then
+            terraform apply -var-file="./terraform-tfvars/dev.tfvars" --auto-approve
+          else
+            echo "Terraform apply skipped."
+          fi
+
+      # Docker Build and Push Job
+      - name: Build and Push Docker Images
+        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'src')
+        run: |
+          echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin <your-aws-account-id>.dkr.ecr.<region>.amazonaws.com
+          docker build -t ${{ steps.terraform.outputs.ecr_repo_uri }}/client:latest ./src/client
+          docker push ${{ steps.terraform.outputs.ecr_repo_uri }}/client:latest
+          docker build -t ${{ steps.terraform.outputs.ecr_repo_uri }}/server:latest ./src/server
+          docker push ${{ steps.terraform.outputs.ecr_repo_uri }}/server:latest
+
+      # Deployment Release Job
+      - name: Release Deployments
+        if: github.event_name == 'push' && github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.modified, 'eks')
+        run: kubectl apply -f eks/
