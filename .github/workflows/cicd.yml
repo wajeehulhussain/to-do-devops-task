@@ -1,5 +1,4 @@
 name: To-do App DevOps Pipeline
-
 on:
   push:
     branches: 
@@ -46,6 +45,8 @@ jobs:
   docker_build_and_push:
     needs: deploy-iac
     runs-on: ubuntu-latest
+    env:
+      ECR_REPOSITORY_URL: ${{ needs.deploy-iac.outputs.ECR_REPOSITORY_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

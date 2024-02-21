@@ -17,11 +17,15 @@ spec:
         image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/wajeehs-ecr-repo:server
         ports:
         - containerPort: 3000
+        envFrom:
+          - configMapRef:
+              name: server-configmap
         env:
-        - name: MONGO_URL
-          value: "mongodb+srv://wajeeh:wajeeh@4321@cluster0.wqbcefu.mongodb.net/?retryWrites=true&w=majority"
-        - name: PORT
-          value: "3000"
+          - name: MONGO_URL
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: mongodb-url
 ---
 apiVersion: v1
 kind: Service

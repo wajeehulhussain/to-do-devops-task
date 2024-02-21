@@ -17,9 +17,9 @@ spec:
         image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/wajeehs-ecr-repo:client
         ports:
         - containerPort: 80
-        env:
-        - name: REACT_APP_API
-          value: "http://server-service:8080/api/tasks" 
+        envFrom:
+          - configMapRef:
+              name: client-configmap
 ---
 apiVersion: v1
 kind: Service
@@ -34,7 +34,6 @@ spec:
       targetPort: 80
   type: ClusterIP
 ---
-#This is only applicable if the NLB is deployed in Public subnets
 apiVersion: v1
 kind: Service
 metadata:
@@ -42,7 +41,7 @@ metadata:
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing #Public Facing NLB
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing 
 spec:
   selector:
     app: client
@@ -51,22 +50,6 @@ spec:
       port: 80
       targetPort: 80
   type: LoadBalancer
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: client-service-lb
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-spec:
-  selector:
-    app: client
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-  type: LoadBalancer
+
 
 
