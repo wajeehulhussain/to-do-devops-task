@@ -1,5 +1,4 @@
 name: To-do App DevOps Pipeline
-
 on:
   push:
     branches: [ dev ]
@@ -15,11 +14,11 @@ jobs:
         run: echo "Branch_Name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
 
       - name: Login to AWS
-        uses: aws-actions/configure-aws@v1
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Initialize Terraform
         run: terraform init -path iaac
@@ -29,19 +28,15 @@ jobs:
           terraform plan -path iaac -var-file="./iaac/terraformtfvars/${Branch_Name}.tfvars" > plan.out
 
       - name: Prompt for confirmation
-        uses: marocchino/sticky-actions@v1
-        with:
-          inputs: |
-            terraform_plan: $(cat plan.out)
-          message: |
-            The following Terraform changes will be applied:
-            {{ .terraform_plan }}
-
-            Are you sure you want to continue? (yes/no)
-
-      - name: Apply Terraform changes on confirmation
-        if: steps.prompt-for-confirmation.outputs.selection == 'yes'
-        run: terraform apply -path iaac -var-file="./iaac/terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
+        run: |
+          cd iac
+          echo "Do you want to apply the Terraform changes? (yes/no)"
+          read apply_confirmation
+          if [ "$apply_confirmation" == "yes" ]; then
+            terraform apply -path iaac -var-file="./iaac/terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
+          else
+            echo "Terraform apply skipped."
+          fi
 
       - name: Save ECR repository name
         run: echo "ECR_REPOSITORY_NAME=$(terraform output -raw module.ecr_repo.ecr_repository_url)" >> $GITHUB_ENV`
