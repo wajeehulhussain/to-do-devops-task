@@ -28,7 +28,7 @@ jobs:
       - name: Plan Terraform changes
         run: |
           cd iaac
-          terraform plan -var-file="./iaac/terraformtfvars/${Branch_Name}.tfvars" > plan.out
+          terraform plan -var-file="./iaac/terraform-tfvars/${Branch_Name}.tfvars" > plan.out
 
       - name: Prompt for confirmation
         run: |
