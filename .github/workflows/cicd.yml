@@ -38,6 +38,11 @@ jobs:
           cat plan.out
           terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
 
+      - name: Save ECR repository URI to environment variable
+        run: |
+          echo "ECR_REPOSITORY_URL=`terraform output -raw ecr_repo_url`" >> $GITHUB_ENV
+          echo $ECR_REPOSITORY_URL
+
   docker_build_and_push:
     needs: deploy-iac
     runs-on: ubuntu-latest
@@ -47,8 +52,6 @@ jobs:
 
       - name: Docker Build and Push
         run: |
-          cd iaac 
-          ECR_REPOSITORY_URL=$(terraform output ecr_repo_url) && echo $ECR_REPOSITORY_URL && cd src
           echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
           docker build -t $ECR_REPOSITORY_URL/client ./src/client
           docker push $ECR_REPOSITORY_URL/client
