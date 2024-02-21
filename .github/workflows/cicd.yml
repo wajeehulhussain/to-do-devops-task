@@ -57,11 +57,3 @@ jobs:
           docker push $ECR_REPOSITORY_URL/client
           docker build -t $ECR_REPOSITORY_URL/server ./src/server
           docker push $ECR_REPOSITORY_URL/server
-
-  # deployment_release:
-  #   needs: docker_build_and_push
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Apply Kubernetes Deployment
-  #       run: |
-  #         kubectl apply -f eks/
