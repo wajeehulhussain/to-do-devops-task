@@ -38,10 +38,14 @@ jobs:
           cat plan.out
           terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
 
-      - name: Save ECR repository URI to environment variable
+      - name: Get ECR repository URL
+        id: get_ecr_url
         run: |
           echo "ECR_REPOSITORY_URL=$(terraform output ecr_repo_url)" >> $GITHUB_ENV
-          echo $ECR_REPOSITORY_URL
+          echo "::set-output name=ecr_repository_url::$(terraform output ecr_repo_url)"
+
+      - name: Save ECR repository URI to secrets
+        run: echo "${{ steps.get_ecr_url.outputs.ecr_repository_url }}" >> ${{ github.workspace }}/ecr_repository_url.secret
 
   docker_build_and_push:
     needs: deploy-iac
@@ -53,7 +57,7 @@ jobs:
       - name: Docker Build and Push
         run: |
           echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
-          docker build -t $ECR_REPOSITORY_URL/client ./src/client
-          docker push $ECR_REPOSITORY_URL/client
-          docker build -t $ECR_REPOSITORY_URL/server ./src/server
-          docker push $ECR_REPOSITORY_URL/server
+          docker build -t ${{ secrets.ECR_REPOSITORY_URL }}/client ./src/client
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}/client
+          docker build -t ${{ secrets.ECR_REPOSITORY_URL }}/server ./src/server
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}/server
