@@ -40,8 +40,8 @@ jobs:
 
       - name: Save ECR repository URI to environment variable
         run: |
-          echo "ECR_REPOSITORY_URI=$(terraform output module.ecr_repo.ecr_repo_uri)" >> $GITHUB_ENV
-          echo $ECR_REPOSITORY_URI
+          echo "ECR_REPOSITORY_URL=$(terraform output ecr_repo_url)" >> $GITHUB_ENV
+          echo $ECR_REPOSITORY_URL
 
   docker_build_and_push:
     needs: deploy-iac
@@ -53,15 +53,15 @@ jobs:
       - name: Docker Build and Push
         run: |
           echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
-          docker build -t $ECR_REPOSITORY_URI/client ./src/client
-          docker push $ECR_REPOSITORY_URI/client
-          docker build -t $ECR_REPOSITORY_URI/server ./src/server
-          docker push $ECR_REPOSITORY_URI/server
+          docker build -t $ECR_REPOSITORY_URL/client ./src/client
+          docker push $ECR_REPOSITORY_URL/client
+          docker build -t $ECR_REPOSITORY_URL/server ./src/server
+          docker push $ECR_REPOSITORY_URL/server
 
-  deployment_release:
-    needs: docker_build_and_push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply Kubernetes Deployment
-        run: |
-          kubectl apply -f eks/
+  # deployment_release:
+  #   needs: docker_build_and_push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Apply Kubernetes Deployment
+  #       run: |
+  #         kubectl apply -f eks/
