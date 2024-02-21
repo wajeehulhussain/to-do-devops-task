@@ -58,7 +58,7 @@ provider "aws" {
 #   security_group_id = [module.security_groups.endpoint_sg.id]
 # }
 
-module "ecr_repos" {
+module "ecr_repo" {
   source = "./modules/ecr"
 
   project = var.project

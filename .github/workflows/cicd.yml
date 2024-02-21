@@ -1,7 +1,9 @@
 name: To-do App DevOps Pipeline
+
 on:
   push:
-    branches: [ dev ]
+    branches: 
+      - dev
 
 jobs:
   deploy-iac:
@@ -28,17 +30,38 @@ jobs:
       - name: Plan Terraform changes
         run: |
           cd iaac
-          pwd
           terraform plan -var-file="terraform-tfvars/${Branch_Name}.tfvars" > plan.out
 
       - name: Prompt for confirmation
         run: |
           cd iaac
-          pwd
           cat plan.out
           terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
 
-      - name: Save ECR repository name
+      - name: Save ECR repository URI to environment variable
         run: |
-          `echo "ECR_REPOSITORY_NAME=$(terraform output module.ecr_repo.ecr_repository_url)" >> $GITHUB_ENV`
-          echo $ECR_REPOSITORY_NAME
+          echo "ECR_REPOSITORY_URI=$(terraform output module.ecr_repo.ecr_repo_uri)" >> $GITHUB_ENV
+          echo $ECR_REPOSITORY_URI
+
+  docker_build_and_push:
+    needs: deploy-iac
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Docker Build and Push
+        run: |
+          echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
+          docker build -t $ECR_REPOSITORY_URI/client ./src/client
+          docker push $ECR_REPOSITORY_URI/client
+          docker build -t $ECR_REPOSITORY_URI/server ./src/server
+          docker push $ECR_REPOSITORY_URI/server
+
+  deployment_release:
+    needs: docker_build_and_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply Kubernetes Deployment
+        run: |
+          kubectl apply -f eks/
