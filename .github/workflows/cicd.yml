@@ -28,16 +28,18 @@ jobs:
       - name: Plan Terraform changes
         run: |
           cd iaac
-          terraform plan -var-file="./iaac/terraform-tfvars/${Branch_Name}.tfvars" > plan.out
+          pwd
+          terraform plan -var-file="terraform-tfvars/${Branch_Name}.tfvars" > plan.out
 
       - name: Prompt for confirmation
         run: |
           cd iaac
+          pwd
           cat plan.out
           echo "Do you want to apply the Terraform changes? (yes/no)"
           read apply_confirmation
           if [ "$apply_confirmation" == "yes" ]; then
-            terraform apply -var-file="./iaac/terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
+            terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
           else
             echo "Terraform apply skipped."
           fi
