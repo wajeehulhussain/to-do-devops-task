@@ -5,7 +5,18 @@ on:
       - dev
 
 jobs:
+  configure-aws-credentials:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
   deploy-iac:
+    needs: configure-aws-credentials
     runs-on: ubuntu-latest
     outputs:
       ecr-repo-url: ${{ steps.ecr-repo-url.outputs.ECR_REPOSITORY_URL }}
@@ -15,13 +26,6 @@ jobs:
 
       - name: Store Branch Name
         run: echo "Branch_Name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-
-      - name: Login to AWS
-        uses: aws-actions/configure-aws-credentials@v4.0.2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Initialize Terraform
         id: terraform-initialize
@@ -49,15 +53,14 @@ jobs:
           echo $ECR_REPOSITORY_URL
 
   docker_build_and_push:
-    needs: deploy-iac
+    needs: [deploy-iac, configure-aws-credentials]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Login to AWS ECR
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
+        run: echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
 
       - name: Build and Push Docker Images
         run: |
