@@ -12,6 +12,7 @@ spec:
       labels:
         app: server
     spec:
+      type: ClusterIP
       containers:
       - name: server
         image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/dev-ecr-repo:server
