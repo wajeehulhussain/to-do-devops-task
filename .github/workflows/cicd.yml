@@ -22,39 +22,43 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Initialize Terraform
+        id: terraform-initialize
         run: |
           cd iaac
           terraform init
 
       - name: Plan Terraform changes
+        id: terraform-plan
         run: |
           cd iaac
           terraform plan -var-file="terraform-tfvars/${Branch_Name}.tfvars" > plan.out
 
       - name: Prompt for confirmation
+        id: terraform-apply
         run: |
           cd iaac
           cat plan.out
           terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
 
       - name: Save ECR repository URI to environment variable
+        id: ecr-repo-url
         run: |
-          echo "ECR_REPOSITORY_URL=`terraform output -raw ecr_repo_url`" >> $GITHUB_ENV
+          echo "::set-output name=ECR_REPOSITORY_URL::$(terraform output ecr_repo_url)"
           echo $ECR_REPOSITORY_URL
 
   docker_build_and_push:
     needs: deploy-iac
     runs-on: ubuntu-latest
-    env:
-      ECR_REPOSITORY_URL: ${{ needs.deploy-iac.outputs.ECR_REPOSITORY_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Docker Build and Push
+      - name: Login to AWS ECR
+        run: echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
+
+      - name: Build and Push Docker Images
         run: |
-          echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin "${{ secrets.AWS_ACCOUNT_ID }}".dkr.ecr."${{ secrets.AWS_REGION }}".amazonaws.com
-          docker build -t $ECR_REPOSITORY_URL/client ./src/client
-          docker push $ECR_REPOSITORY_URL/client
-          docker build -t $ECR_REPOSITORY_URL/server ./src/server
-          docker push $ECR_REPOSITORY_URL/server
+          docker build -t ${{ needs.deploy-iac.outputs.ecr-repo-url }}/client ./src/client
+          docker push ${{ needs.deploy-iac.outputs.ecr-repo-url }}/client
+          docker build -t ${{ needs.deploy-iac.outputs.ecr-repo-url }}/server ./src/server
+          docker push ${{ needs.deploy-iac.outputs.ecr-repo-url }}/server

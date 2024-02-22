@@ -14,12 +14,12 @@ spec:
     spec:
       containers:
       - name: client
-        image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/wajeehs-ecr-repo:client
+        image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/dev-ecr-repo:client
         ports:
         - containerPort: 80
         envFrom:
           - configMapRef:
-              name: client-configmap
+              name: client-config
 ---
 apiVersion: v1
 kind: Service
@@ -41,7 +41,7 @@ metadata:
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing 
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internal
 spec:
   selector:
     app: client

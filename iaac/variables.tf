@@ -2,20 +2,20 @@
 variable "project" {
   type        = string
   description = "project name"
-  default     = "wajeehs"
+  default     = "to-do-app"
   validation {
-    condition     = contains(["wajeehs"], var.project)
-    error_message = "Err: Environment should be 'wajeehs'."
+    condition     = contains(["to-do-app"], var.project)
+    error_message = "Err: Environment should be 'to-do-app'."
   }
 }
 variable "owner" {
   type        = string
-  default     = "wajeehul.hussain@systemsltd.com"
+  default     = "syedmuhammadwajeeh@gmail.com"
   description = " Name"
   validation {
     condition = contains(
       [
-       "wajeehul.hussain@systemsltd.com"
+       "syedmuhammadwajeeh@gmail.com"
       ],
       var.owner
     )
@@ -25,6 +25,11 @@ variable "owner" {
 variable "aws_region" {
   type        = string
   description = "vpc region"
+}
+
+variable "profile" {
+  type        = string
+  description = "AWS profile to use"
 }
 
 ####################### Modules Start #####################

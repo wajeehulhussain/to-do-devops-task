@@ -99,7 +99,7 @@ variable "role_path" {
 }
 variable "eks_cluster_name" {
   type        = string
-  default     = "my-project-dev-cluster"
+  default     = "to-do-app-cluster"
   description = "cluster name"
 }
 variable "kubernetes_url" {
