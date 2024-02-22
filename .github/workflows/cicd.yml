@@ -7,6 +7,8 @@ on:
 jobs:
   deploy-iac:
     runs-on: ubuntu-latest
+    outputs:
+      ecr-repo-url: ${{ steps.ecr-repo-url.outputs.ECR_REPOSITORY_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

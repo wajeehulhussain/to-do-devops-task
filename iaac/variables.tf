@@ -27,10 +27,10 @@ variable "aws_region" {
   description = "vpc region"
 }
 
-variable "profile" {
-  type        = string
-  description = "AWS profile to use"
-}
+# variable "profile" {
+#   type        = string
+#   description = "AWS profile to use"
+# }
 
 ####################### Modules Start #####################
 
