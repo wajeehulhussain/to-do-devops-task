@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: server
-        image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/dev-ecr-repo:server
+        image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/wajeehs-ecr-repo:server
         ports:
         - containerPort: 3000
         envFrom:
