@@ -1,15 +1,15 @@
 name: Terraform AWS Deployment
 
 on:
-  push:
-    branches:
-      - dev
-#   workflow_dispatch:
-#     inputs:
-#       confirmation:
-#         description: 'Confirm deployment'
-#         required: true
-#         default: 'no'
+#   push:
+#     branches:
+#       - dev
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Confirm deployment'
+        required: true
+        default: 'no'
 
 jobs:
   deploy:
@@ -37,7 +37,12 @@ jobs:
       working-directory: iaac
       run: terraform plan -var-file="terraform-tfvars/${Branch_Name}.tfvars" > plan.out
 
+    - name: Prompt for confirmation
+      if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.confirmation == 'yes' }}
+      working-directory: iaac
+      run: echo "User confirmed deployment"
 
     - name: Deploy infrastructure
+      if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.confirmation == 'yes' }}
       working-directory: iaac
       run: terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
