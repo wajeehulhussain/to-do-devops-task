@@ -1,0 +1,85 @@
+# name: To-do App DevOps Pipeline
+# on:
+#   push:
+#     branches: 
+#       - dev
+
+# jobs:
+#   deploy-iac:
+#     runs-on: ubuntu-latest
+#     outputs:
+#       ecr-repo-url: ${{ steps.ecr-repo-url.outputs.ECR_REPOSITORY_URL }}
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Store Branch Name
+#         run: echo "Branch_Name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
+#       - name: Login to AWS
+#         uses: aws-actions/configure-aws-credentials@v4.0.2
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+
+#       - name: Initialize Terraform
+#         id: terraform-initialize
+#         run: |
+#           cd iaac
+#           terraform init
+
+#       - name: Plan Terraform changes
+#         id: terraform-plan
+#         run: |
+#           cd iaac
+#           terraform plan -var-file="terraform-tfvars/${Branch_Name}.tfvars" > plan.out
+
+#       - name: Prompt for confirmation
+#         id: terraform-apply
+#         run: |
+#           cd iaac
+#           cat plan.out
+#           terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
+
+#       - name: Save ECR repository URI to environment variable
+#         id: ecr-repo-url
+#         run: |
+#           echo "::set-output name=ECR_REPOSITORY_URL::$(terraform output ecr_repo_url)"
+#           echo $ECR_REPOSITORY_URL
+
+#   docker_build_and_push:
+#     needs: deploy-iac
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+        
+#       - name: Checkout
+#         uses: actions/checkout@v2
+  
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: ${{ secrets.AWS_REGION }}
+  
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v1
+  
+#       - name: Automatic Tagging of Releases
+#         id: increment-git-tag
+#         run: |
+#           bash ./build/git_update.sh -v major
+  
+#       - name: Build, Tag, and Push the Image to Amazon ECR
+#         id: build-image
+#         env:
+#           IMAGE_TAG: ${{ steps.increment-git-tag.outputs.git-tag }}
+#         run: |
+#           docker build -t ${{ needs.deploy-iac.outputs.ecr-repo-url }}:client-$IMAGE_TAG ./src/client
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:client-$IMAGE_TAG 
+#           docker build -t ${{ needs.deploy-iac.outputs.ecr-repo-url }}:server-$IMAGE_TAG ./src/server
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:server-$IMAGE_TAG 
