@@ -2,9 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
-terraform {
-  backend "s3" {}
-}
+# terraform {
+#   backend "s3" {}
+# }
 
 ####################### Modules Start #####################
 module "network" {
