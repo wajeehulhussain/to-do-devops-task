@@ -1,0 +1,55 @@
+name: Build Docker Images
+
+env:
+    ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
+
+on:
+  push:
+    paths:
+      - 'src/client/**'
+      - 'src/server/**'
+    branches:
+      - dev
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Determine client image tag
+      id: determine-client-tag
+      run: echo "::set-output name=client_tag_value::v$(( $(cat client_tag_counter.txt) + 1 ))"
+
+    - name: Build and tag client Docker image
+      if: contains(github.event_path, 'src/client/')
+      run: |
+        docker build -t $ECR_REPO_URL/client:${{ steps.determine-client-tag.outputs.client_tag_value }} ./src/client
+        echo ${{ steps.determine-client-tag.outputs.client_tag_value }} > client_tag_counter.txt
+
+    - name: Determine server image tag
+      id: determine-server-tag
+      run: echo "::set-output name=server_tag_value::v$(( $(cat server_tag_counter.txt) + 1 ))"
+
+    - name: Build and tag server Docker image
+      if: contains(github.event_path, 'src/server/')
+      run: |
+        docker build -t $ECR_REPO_URL/server:${{ steps.determine-server-tag.outputs.server_tag_value }} ./src/server
+        echo ${{ steps.determine-server-tag.outputs.server_tag_value }} > server_tag_counter.txt
+
+    - name: Push client Docker image to ECR
+      if: success() && steps.determine-client-tag.outputs.client_tag_value
+      run: docker push  $ECR_REPO_URL/server:${{ steps.determine-client-tag.outputs.client_tag_value }}
+
+    - name: Push server Docker image to ECR
+      if: success() && steps.determine-server-tag.outputs.server_tag_value
+      run: docker push  $ECR_REPO_URL/server:${{ steps.determine-server-tag.outputs.server_tag_value }}
