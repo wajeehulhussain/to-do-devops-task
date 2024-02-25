@@ -31,7 +31,7 @@ jobs:
 
     - name: Initialize Terraform
       working-directory: iaac
-      run: terraform init
+      run: terraform init -backend-config="configs/${Branch_Name}.conf"
 
     - name: Plan infrastructure changes
       working-directory: iaac
