@@ -89,10 +89,10 @@ variable "instance_configurations" {
       instance_type      = "t3.medium"
       os_type            = "linux"
       index              = 0
-      key_name           = "wajeehs-bastion-key"
+      key_name           = "to-do-app-bastion-key"
       include_public_key = true
       metadata_version   = "required"
-      ami_id             = "ami-0cf10cdf9fcd62d37"
+      ami_id             = "ami-07761f3ae34c4478d"
       lifecycle_tag      = true
       root_ebs_size      = "150"
     }

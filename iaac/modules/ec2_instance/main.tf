@@ -23,7 +23,7 @@ data "aws_key_pair" "keypairs" {
 }
 
 resource "aws_instance" "bastion" {
-  for_each               = { for i, instance_configuration in var.instance_configurations : i => instance_configuration }
+  for_each               = var.instance_configurations
   ami                    = each.value.ami_id
   instance_type          = each.value.instance_type
   subnet_id              = var.subnet_id
