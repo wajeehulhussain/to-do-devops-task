@@ -9,7 +9,7 @@ on:
       confirmation:
         description: 'Confirm deployment'
         required: true
-        default: 'yes'
+        default: 'no'
 
 jobs:
   deploy:
