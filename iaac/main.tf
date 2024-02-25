@@ -7,6 +7,8 @@ terraform {
 }
 
 ###################### Modules Start #####################
+
+/*
 module "network" {
   source = "./modules/vpc"
 
@@ -47,22 +49,15 @@ module "security_groups" {
   eks_default_sg_id    = module.eks.cluster_security_group_id
 }
 
-# module "vpc_endpoints" {
-#   source = "./modules/vpc_endpoints"
+module "vpc_endpoints" {
+  source = "./modules/vpc_endpoints"
 
-#   project           = var.project
-#   owner             = var.owner
-#   vpc_id            = module.network.vpc.id
-#   subnet_ids        = module.network.private_subnet_ids
-#   route_table_id    = module.network.private_rtb_id
-#   security_group_id = [module.security_groups.endpoint_sg.id]
-# }
-
-module "ecr_repo" {
-  source = "./modules/ecr"
-
-  project = var.project
-  owner   = var.owner
+  project           = var.project
+  owner             = var.owner
+  vpc_id            = module.network.vpc.id
+  subnet_ids        = module.network.private_subnet_ids
+  route_table_id    = module.network.private_rtb_id
+  security_group_id = [module.security_groups.endpoint_sg.id]
 }
 
 module "ec2_instance" {
@@ -74,4 +69,11 @@ module "ec2_instance" {
   security_groups = [
     module.security_groups.linux_bastion_sg
   ]
+}
+*/
+module "ecr_repo" {
+  source = "./modules/ecr"
+
+  project = var.project
+  owner   = var.owner
 }
