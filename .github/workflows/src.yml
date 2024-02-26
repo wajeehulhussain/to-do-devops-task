@@ -5,9 +5,9 @@ env:
 
 on:
   push:
-    paths:
-      - 'src/client/**'
-      - 'src/server/**'
+    # paths:
+    #   - 'src/client/**'
+    #   - 'src/server/**'
     branches:
       - dev
 #   workflow_dispatch:
