@@ -22,6 +22,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Validate Build Confirmation
+      if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.build_response == 'no' }}
+      run: exit 1
+      
     - name: Checkout repository
       uses: actions/checkout@v2
 
@@ -35,10 +39,6 @@ jobs:
     - name: Determine client image tag
       id: determine-client-tag
       run: echo "::set-output name=client_tag_value::v$(( $(cat client_tag_counter.txt) + 1 ))"
-
-    - name: Validate Build Confirmation
-      if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.build_response == 'no' }}
-      run: exit 1
 
     - name: Build and tag client Docker image
       if: contains(github.event_path, 'src/client/')
