@@ -40,7 +40,6 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v2
 
     - name: Build, tag and push the client docker image
-      if: contains(github.event_path, 'src/client/')
       run: |
         docker build -t $ECR_REPO_URL:client ./src/client
         if [ $? -eq 0 ]; then
@@ -51,7 +50,6 @@ jobs:
         fi
 
     - name: Build, tag and push the server docker image
-      if: contains(github.event_path, 'src/server/')
       run: |
         docker build -t $ECR_REPO_URL:server ./src/server
         if [ $? -eq 0 ]; then
