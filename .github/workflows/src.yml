@@ -5,9 +5,9 @@ env:
 
 on:
   push:
-    paths:
-      - 'src/client/**'
-      - 'src/server/**'
+    # paths:
+    #   - 'src/client/**'
+    #   - 'src/server/**'
     branches:
       - dev
 #   workflow_dispatch:
@@ -44,7 +44,6 @@ jobs:
       run: echo "::set-output name=client_tag_value::v$(( $(cat ./src/client/client.txt) + 1 ))"
 
     - name: Build, tag and push the client docker image
-      if: contains(github.event_path, 'src/client/')
       run: |
         docker build -t $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }} ./src/client
         if [ $? -eq 0 ]; then
@@ -60,7 +59,6 @@ jobs:
       run: echo "::set-output name=server_tag_value::v$(( $(cat ./src/server/server.txt) + 1 ))"
 
     - name: Build, tag and push the server docker image
-      if: contains(github.event_path, 'src/server/')
       run: |
         docker build -t $ECR_REPO_URL:server-v${{ steps.determine-client-tag.outputs.server_tag_value }} ./src/server
         if [ $? -eq 0 ]; then
