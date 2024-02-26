@@ -22,10 +22,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # - name: Validate Build Confirmation
-    #   if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.build_response == 'no' }}
-    #   run: exit 1
-
     - name: Checkout repository
       uses: actions/checkout@v2
 
