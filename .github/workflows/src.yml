@@ -4,28 +4,28 @@ env:
   ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
 
 on:
-#   push:
-#     paths:
-#       - 'src/client/**'
-#       - 'src/server/**'
-#     branches:
-#       - dev
-  workflow_dispatch:
-    inputs:
-      build_response:
-        description: 'Confirm Build'
-        required: true
-        default: 'no'
+  push:
+    paths:
+      - 'src/client/**'
+      - 'src/server/**'
+    branches:
+      - dev
+#   workflow_dispatch:
+#     inputs:
+#       build_response:
+#         description: 'Confirm Build'
+#         required: true
+#         default: 'no'
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Validate Build Confirmation
-      if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.build_response == 'no' }}
-      run: exit 1
-      
+    # - name: Validate Build Confirmation
+    #   if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.build_response == 'no' }}
+    #   run: exit 1
+
     - name: Checkout repository
       uses: actions/checkout@v2
 
