@@ -43,7 +43,7 @@ jobs:
       run: |
         docker build -t $ECR_REPO_URL:client ./src/client
         if [ $? -eq 0 ]; then
-          docker push $ECR_REPO_URL/client
+          docker push $ECR_REPO_URL:client
         else
           echo "Build failed."
           exit 1
