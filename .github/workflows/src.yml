@@ -1,15 +1,21 @@
 name: Build Docker Images
 
 env:
-    ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
+  ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
 
 on:
-  push:
-    paths:
-      - 'src/client/**'
-      - 'src/server/**'
-    branches:
-      - dev
+#   push:
+#     paths:
+#       - 'src/client/**'
+#       - 'src/server/**'
+#     branches:
+#       - dev
+  workflow_dispatch:
+    inputs:
+      build_response:
+        description: 'Confirm Build'
+        required: true
+        default: 'no'
 
 jobs:
   build_and_push:
@@ -30,6 +36,10 @@ jobs:
       id: determine-client-tag
       run: echo "::set-output name=client_tag_value::v$(( $(cat client_tag_counter.txt) + 1 ))"
 
+    - name: Validate Build Confirmation
+      if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.build_response == 'no' }}
+      run: exit 1
+
     - name: Build and tag client Docker image
       if: contains(github.event_path, 'src/client/')
       run: |
@@ -48,8 +58,8 @@ jobs:
 
     - name: Push client Docker image to ECR
       if: success() && steps.determine-client-tag.outputs.client_tag_value
-      run: docker push  $ECR_REPO_URL/server:${{ steps.determine-client-tag.outputs.client_tag_value }}
+      run: docker push $ECR_REPO_URL/client:${{ steps.determine-client-tag.outputs.client_tag_value }}
 
     - name: Push server Docker image to ECR
       if: success() && steps.determine-server-tag.outputs.server_tag_value
-      run: docker push  $ECR_REPO_URL/server:${{ steps.determine-server-tag.outputs.server_tag_value }}
+      run: docker push $ECR_REPO_URL/server:${{ steps.determine-server-tag.outputs.server_tag_value }}
