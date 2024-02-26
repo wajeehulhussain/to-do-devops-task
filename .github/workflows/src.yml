@@ -5,9 +5,9 @@ env:
 
 on:
   push:
-    paths:
-      - 'src/client/**'
-      - 'src/server/**'
+    # paths:
+    #   - 'src/client/**'
+    #   - 'src/server/**'
     branches:
       - dev
 #   workflow_dispatch:
@@ -41,34 +41,33 @@ jobs:
 
     - name: Determine client image tag
       id: determine-client-tag
-      run: echo "::set-output name=client_tag_value::v$(( $(cat client.txt) + 1 ))"
-
+      run: echo "::set-output name=client_tag_value::v$(( $(if [ -f "client.txt" ]; then cat client.txt; else echo "0"; fi) + 1 ))"
+    
     - name: Build, tag and push the client docker image
-      if: contains(github.event_path, 'src/client/')
       run: |
+        touch client.txt
         docker build -t $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }} ./src/client
         if [ $? -eq 0 ]; then
-          docker push $ECR_REPO_URL:clientv${{ steps.determine-client-tag.outputs.client_tag_value }}
+          docker push $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }}
           echo ${{ steps.determine-client-tag.outputs.client_tag_value }} > client.txt
         else
           echo "Build failed."
           exit 1
         fi
-
+    
     - name: Determine server image tag
       id: determine-server-tag
-      run: echo "::set-output name=server_tag_value::v$(( $(cat server.txt) + 1 ))"
-
+      run: echo "::set-output name=server_tag_value::v$(( $(if [ -f "server.txt" ]; then cat server.txt; else echo "0"; fi) + 1 ))"
+    
     - name: Build, tag and push the server docker image
-      if: contains(github.event_path, 'src/server/')
       run: |
-        docker build -t $ECR_REPO_URL:serverv${{ steps.determine-client-tag.outputs.server_tag_value }} ./src/server
+        touch server.txt
+        docker build -t $ECR_REPO_URL:server-v${{ steps.determine-client-tag.outputs.server_tag_value }} ./src/server
         if [ $? -eq 0 ]; then
-          docker push $ECR_REPO_URL:serverv${{ steps.determine-client-tag.outputs.server_tag_value }}
+          docker push $ECR_REPO_URL:server-v${{ steps.determine-client-tag.outputs.server_tag_value }}
           echo ${{ steps.determine-client-tag.outputs.server_tag_value }} > server.txt
         else
           echo "Build failed."
           exit 1
-        fi'
-
+        fi
     
