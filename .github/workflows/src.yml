@@ -41,14 +41,14 @@ jobs:
 
     - name: Determine client image tag
       id: determine-client-tag
-      run: echo "::set-output name=client_tag_value::v$(( $(cat ./src/client/client.txt 2>/dev/null || echo 0) + 1 ))"
+      run: echo "::set-output name=client_tag_value::v$(( $(cat ./src/client/client.txt) + 1 ))"
     
-    - name: Build, tag, and push the client docker image
+    - name: Build, tag and push the client docker image
       run: |
         docker build -t $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }} ./src/client
         if [ $? -eq 0 ]; then
           docker push $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }}
-          echo $(( $(cat ./src/client/client.txt 2>/dev/null || echo 0) + 1 )) > ./src/client/client.txt
+          echo $(( $(cat ./src/client/client.txt) + 1 )) > ./src/client/client.txt
         else
           echo "Build failed."
           exit 1
@@ -56,14 +56,14 @@ jobs:
     
     - name: Determine server image tag
       id: determine-server-tag
-      run: echo "::set-output name=server_tag_value::v$(( $(cat ./src/server/server.txt 2>/dev/null || echo 0) + 1 ))"
+      run: echo "::set-output name=server_tag_value::v$(( $(cat ./src/server/server.txt) + 1 ))"
     
-    - name: Build, tag, and push the server docker image
+    - name: Build, tag and push the server docker image
       run: |
         docker build -t $ECR_REPO_URL:server-v${{ steps.determine-server-tag.outputs.server_tag_value }} ./src/server
         if [ $? -eq 0 ]; then
           docker push $ECR_REPO_URL:server-v${{ steps.determine-server-tag.outputs.server_tag_value }}
-          echo $(( $(cat ./src/server/server.txt 2>/dev/null || echo 0) + 1 )) > ./src/server/server.txt
+          echo $(( $(cat ./src/server/server.txt) + 1 )) > ./src/server/server.txt
         else
           echo "Build failed."
           exit 1
