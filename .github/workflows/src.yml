@@ -41,7 +41,7 @@ jobs:
 
     - name: Determine client image tag
       id: determine-client-tag
-      run: echo "::set-output name=client_tag_value::v$(( $(cat ./src/client/client.txt) + 1 ))"
+      run: echo "::set-output name=client_tag_value::$(( $(cat ./src/client/client.txt) + 1 ))"
     
     - name: Build, tag and push the client docker image
       run: |
@@ -56,7 +56,7 @@ jobs:
     
     - name: Determine server image tag
       id: determine-server-tag
-      run: echo "::set-output name=server_tag_value::v$(( $(cat ./src/server/server.txt) + 1 ))"
+      run: echo "::set-output name=server_tag_value::$(( $(cat ./src/server/server.txt) + 1 ))"
     
     - name: Build, tag and push the server docker image
       run: |
