@@ -2,8 +2,7 @@ name: Build Docker Images
 
 env:
   ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
-  REGION: ${{ vars.AWS_REGION }} 
-
+  
 on:
   push:
     branches:
@@ -25,7 +24,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "$REGION"
+          aws-region: ${{ vars.AWS_REGION }} 
 
       - name: Login to Amazon ECR
         id: login-ecr
