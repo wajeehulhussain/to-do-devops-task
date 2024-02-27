@@ -1,0 +1,56 @@
+name: Deploy to EKS
+
+env:
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  REGION: ${{ vars.AWS_REGION }}
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: $REGION
+
+      - name: Install kubectl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https
+          sudo apt-get install -y curl
+          curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+          echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+          sudo apt-get update
+          sudo apt-get install -y kubectl
+
+      - name: Configure kubeconfig
+        run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $REGION
+
+      - name: Download tag values artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: tag-values
+          path: artifacts
+
+      - name: Update deployment manifest files
+        run: |
+          cd eks
+          sed -i "s/client_tag_placeholder/$(cat ../artifacts/client_tag_value.txt)/g" client.yaml
+          sed -i "s/server_tag_placeholder/$(cat ../artifacts/server_tag_value.txt)/g" server.yaml
+
+      - name: Deploy to EKS
+        run: |
+          cd eks
+          kubectl apply -f .
