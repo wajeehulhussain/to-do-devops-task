@@ -53,4 +53,4 @@ jobs:
       - name: Deploy to EKS
         run: |
           cd eks
-          kubectl apply -f .
+          kubectl apply -f . -n sl-devops
