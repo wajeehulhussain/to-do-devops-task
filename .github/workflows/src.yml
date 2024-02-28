@@ -31,14 +31,14 @@
         id: get_client_counter
         run: |
           chmod +x ./src/get_item.sh 
-          counter_value=$(./src/get_item.sh client)
+          counter_value=$(./src/get_item.sh Client)
           echo "::set-output name=value::$counter_value"
   
       - name: Get Server counter value from DynamoDB 
         id: get_server_counter
         run: |
           chmod +x ./src/get_item.sh 
-          counter_value=$(./src/get_item.sh server)
+          counter_value=$(./src/get_item.sh Server)
           echo "::set-output name=value::$counter_value"
   
       - name: Build, tag, and push client image to ECR
@@ -48,7 +48,7 @@
           if [ $? -eq 0 ]; then
             docker push $ECR_REPO_URL:client-v${counter_value}
             chmod +x ../update_item.sh 
-            ../update_item.sh client $((counter_value + 1))
+            ../update_item.sh Client $((counter_value + 1))
           else
             echo "Build failed."
             exit 1
@@ -61,7 +61,7 @@
           if [ $? -eq 0 ]; then
             docker push $ECR_REPO_URL:server-v${counter_value}
             chmod +x ../update_item.sh 
-            ../update_item.sh server $((counter_value + 1))
+            ../update_item.sh Server $((counter_value + 1))
           else
             echo "Build failed."
             exit 1
