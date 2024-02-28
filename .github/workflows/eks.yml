@@ -45,8 +45,8 @@ jobs:
           decremented_server_value=$(( $(./src/get_item.sh Server) - 1 ))
 
           pwd
-          sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:client-v$decremented_client_value|g" ./eks/client.yml
-          sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:server-v$decremented_server_value|g" ./eks/server.yml
+          sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:client-v$decremented_client_value|g" ./eks/client.yaml
+          sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:server-v$decremented_server_value|g" ./eks/server.yaml
 
       - name: Deploy to EKS
         run: |
