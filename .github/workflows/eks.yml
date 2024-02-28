@@ -35,18 +35,13 @@ jobs:
           sudo apt-get install -y kubectl
 
       - name: Configure kubeconfig
-        run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $REGION
-
-      - name: Download tag values artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: tag-values
-          path: artifacts
+        run: | 
+          aws eks update-kubeconfig --region $REGION --name $EKS_CLUSTER_NAME
 
       - name: Update deployment manifest files
         run: |
-          decremented_client_value=$(( $(./src/get_item.sh client) - 1 ))
-          decremented_server_value=$(( $(./src/get_item.sh server) - 1 ))
+          decremented_client_value=$(( $(./src/get_item.sh Client) - 1 ))
+          decremented_server_value=$(( $(./src/get_item.sh Server) - 1 ))
 
           sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:client-v$decremented_client_value|g" ./eks/client.yml
           sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:server-v$decremented_server_value|g" ./eks/server.yml
