@@ -48,7 +48,7 @@
           if [ $? -eq 0 ]; then
             docker push $ECR_REPO_URL:client-v${counter_value}
             pwd
-            chmod +x ../update_item.sh 
+            chmod +x ./src/update_item.sh 
             ../update_item.sh Client $((counter_value + 1))
           else
             echo "Build failed."
@@ -61,7 +61,7 @@
           docker build -t $ECR_REPO_URL:server-v${counter_value} ./src/server
           if [ $? -eq 0 ]; then
             docker push $ECR_REPO_URL:server-v${counter_value}
-            chmod +x ../update_item.sh 
+            chmod +x ./src/update_item.sh 
             ../update_item.sh Server $((counter_value + 1))
           else
             echo "Build failed."
