@@ -40,6 +40,7 @@ jobs:
 
       - name: Update deployment manifest files
         run: |
+          chmod +x ./src/get_item.sh
           decremented_client_value=$(( $(./src/get_item.sh Client) - 1 ))
           decremented_server_value=$(( $(./src/get_item.sh Server) - 1 ))
 
