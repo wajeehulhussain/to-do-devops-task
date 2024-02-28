@@ -1,73 +1,64 @@
-name: Build Docker Images
+  name: Build Docker Images
 
-env:
-  ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
+  env:
+    ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
 
-on:
-  push:
-    branches:
-      - dev
-
-jobs:
-  build_and_push:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
+  on:
+    push:
+      branches:
+        - dev
+  
+  jobs:
+    update_and_push:
+      runs-on: ubuntu-latest
+  
+      steps:
+      - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Setup AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+  
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }} 
-
+          aws-region: ${{ vars.AWS_REGION }}
+  
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Retrieve previous client and server tag values
-        uses: actions/download-artifact@v2
-        with:
-          name: tag-values
-          path: artifacts
-
-      - name: Determine client image tag
-        id: determine-client-tag
-        run: echo "::set-output name=client_tag_value::$(( $(cat ./src/client/client.txt) + 1 ))"
-
-      - name: Determine server image tag
-        id: determine-server-tag
-        run: echo "::set-output name=server_tag_value::v$(( $(cat ./src/server/server.txt) + 1 ))"
-
-      - name: Build, tag and push the client docker image
+  
+      - name: Get Client counter value from DynamoDB 
+        id: get_client_counter
         run: |
-          docker build -t $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }} ./src/client
+          counter_value=$(./src/get_item.sh client)
+          echo "::set-output name=value::$counter_value"
+  
+      - name: Get Server counter value from DynamoDB 
+        id: get_server_counter
+        run: |
+          counter_value=$(./src/get_item.sh server)
+          echo "::set-output name=value::$counter_value"
+  
+      - name: Build, tag, and push client image to ECR
+        run: |
+          counter_value=${{ steps.get_client_counter.outputs.value }}
+          docker build -t $ECR_REPO_URL:client-v${counter_value} ./src/client
           if [ $? -eq 0 ]; then
-            docker push $ECR_REPO_URL:client-v${{ steps.determine-client-tag.outputs.client_tag_value }}
-            echo $(( $(cat ./src/client/client.txt) + 1 )) > ./src/client/client.txt
+            docker push $ECR_REPO_URL:client-v${counter_value}
+            ../update_item.sh client $((counter_value + 1))
           else
             echo "Build failed."
             exit 1
           fi
-
-      - name: Build, tag and push the server docker image
+    
+      - name: Build, tag, and push server image to ECR
         run: |
-          docker build -t $ECR_REPO_URL:server-${{ steps.determine-server-tag.outputs.server_tag_value }} ./src/server
+          counter_value=${{ steps.get_server_counter.outputs.value }}
+          docker build -t $ECR_REPO_URL:server-v${counter_value} ./src/server
           if [ $? -eq 0 ]; then
-            docker push $ECR_REPO_URL:server-${{ steps.determine-server-tag.outputs.server_tag_value }}
-            echo $(( $(cat ./src/server/server.txt) + 1 )) > ./src/server/server.txt
+            docker push $ECR_REPO_URL:server-v${counter_value}
+            ../update_item.sh server $((counter_value + 1))
           else
             echo "Build failed."
             exit 1
           fi
-
-      - name: Save updated tag values as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: tag-values
-          path: artifacts
