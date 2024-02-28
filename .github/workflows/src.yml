@@ -47,6 +47,7 @@
           docker build -t $ECR_REPO_URL:client-v${counter_value} ./src/client
           if [ $? -eq 0 ]; then
             docker push $ECR_REPO_URL:client-v${counter_value}
+            pwd
             chmod +x ../update_item.sh 
             ../update_item.sh Client $((counter_value + 1))
           else
