@@ -36,7 +36,7 @@ jobs:
 
       - name: Configure kubeconfig
         run: | 
-          aws eks update-kubeconfig --region $REGION --name $EKS_CLUSTER_NAME
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name $EKS_CLUSTER_NAME
 
       - name: Update deployment manifest files
         run: |
