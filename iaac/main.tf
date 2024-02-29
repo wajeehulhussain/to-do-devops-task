@@ -6,9 +6,8 @@ terraform {
   backend "s3" {}
 }
 
-###################### Modules Start #####################
+###################### Modules Start ####################
 
-/*
 module "network" {
   source = "./modules/vpc"
 
@@ -49,6 +48,7 @@ module "security_groups" {
   eks_default_sg_id    = module.eks.cluster_security_group_id
 }
 
+/*
 module "vpc_endpoints" {
   source = "./modules/vpc_endpoints"
 
