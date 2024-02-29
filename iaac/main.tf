@@ -48,6 +48,13 @@ module "security_groups" {
   eks_default_sg_id    = module.eks.cluster_security_group_id
 }
 
+module "ecr_repo" {
+  source = "./modules/ecr"
+
+  project = var.project
+  owner   = var.owner
+}
+
 /*
 module "vpc_endpoints" {
   source = "./modules/vpc_endpoints"
@@ -71,9 +78,4 @@ module "ec2_instance" {
   ]
 }
 */
-module "ecr_repo" {
-  source = "./modules/ecr"
 
-  project = var.project
-  owner   = var.owner
-}
