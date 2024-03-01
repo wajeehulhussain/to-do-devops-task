@@ -35,17 +35,17 @@ variable "endpoint_public_access" {
 
 variable "fargate_profile_name" {
   type        = string
-  default     = "fargate-profile"
+  default     = "to-do-app-profile"
   description = "The name of the Fargate profile"
 }
 
 variable "namespace" {
   type        = string
-  default     = "my-app"
+  default     = "to-do-app"
   description = "The namespace of the fargate profile"
   validation {
     condition = contains(
-      ["my-app"],
+      ["to-do-app"],
       var.namespace
     )
     error_message = "Err: The namespace should correspond to the designated namespace."
@@ -89,8 +89,8 @@ variable "forgate_configurations" {
   }))
   default = {
     "my-app" = {
-      fargate_profile_name = "my-app-profile"
-      namespaces           = ["my-app"]
+      fargate_profile_name = "to-do-app-profile"
+      namespaces           = ["to-do-app"]
     }
   }
 }

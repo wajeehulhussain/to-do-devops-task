@@ -1,0 +1,48 @@
+name: Deploy to EKS
+
+env:
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure kubeconfig
+        run: | 
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name $EKS_CLUSTER_NAME
+
+      - name: Update deployment manifest files
+        run: |
+          chmod +x ./src/get_item.sh
+          decremented_client_value=$(( $(./src/get_item.sh Client) - 1 ))
+          decremented_server_value=$(( $(./src/get_item.sh Server) - 1 ))
+
+          pwd
+          sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:client-v$decremented_client_value|g" ./eks/client.yaml
+          sed -i "s|\(image:.*\)\/wajeehs-ecr-repo:\(.*\)|\1\/wajeehs-ecr-repo:server-v$decremented_server_value|g" ./eks/server.yaml
+
+      - name: Deploy to EKS
+        run: |
+          cd eks
+          kubectl create ns to-do-app
+          kubectl apply -f . -n to-do-app 
