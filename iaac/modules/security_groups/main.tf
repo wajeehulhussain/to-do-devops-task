@@ -69,7 +69,6 @@ resource "aws_security_group" "linux_bastion_sg" {
     cidr_blocks = [var.my_ip]
   }
 
-
   egress {
     from_port   = 0
     to_port     = 0

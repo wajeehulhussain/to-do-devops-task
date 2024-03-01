@@ -23,7 +23,7 @@ resource "aws_eks_addon" "eks_cluster_addons" {
 }
 
 resource "aws_eks_fargate_profile" "eks_cluster_fargate_profile" {
-  for_each = { for i, forgate_configuration in var.forgate_configurations : i => forgate_configuration }
+  for_each = { for i, fargate_configuration in var.fargate_configurations : i => fargate_configuration }
 
   cluster_name           = aws_eks_cluster.eks_cluster.name
   fargate_profile_name   = each.value.fargate_profile_name

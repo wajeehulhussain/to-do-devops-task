@@ -82,7 +82,7 @@ variable "security_group_ids" {
   description = "The Security Group IDs to be utilized for EKS"
 }
 
-variable "forgate_configurations" {
+variable "fargate_configurations" {
   type = map(object({
     fargate_profile_name = string
     namespaces           = list(string)
