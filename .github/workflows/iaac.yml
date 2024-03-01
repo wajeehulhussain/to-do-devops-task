@@ -45,4 +45,4 @@ jobs:
     - name: Deploy infrastructure
       if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.confirmation == 'yes' }}
       working-directory: iaac
-      run: terraform apply -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve
+      run: terraform destroy -var-file="terraform-tfvars/${Branch_Name}.tfvars" --auto-approve

@@ -39,7 +39,7 @@
         run: echo "User confirmed Build Docker Images"
   
       - name: Get Client counter value from DynamoDB 
-        id: get_client_counter
+        id: get_client_counter 
         run: |
           chmod +x ./src/get_item.sh 
           counter_value=$(./src/get_item.sh Client)
@@ -59,7 +59,7 @@
           if [ $? -eq 0 ]; then
             docker push $ECR_REPO_URL:client-v${counter_value}
             chmod +x ./src/update_item.sh 
-            ./src/update_item.sh Client $((counter_value + 1))
+            ./src/update_item.sh Client $((counter_value + 1)) 
           else
             echo "Build failed."
             exit 1
