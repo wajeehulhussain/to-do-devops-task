@@ -4,9 +4,15 @@
     ECR_REPO_URL: ${{ vars.ECR_REPOSITORY_URL }}
 
   on:
-    push:
-      branches:
-        - dev
+    #   push:
+    #     branches:
+    #       - dev
+      workflow_dispatch:
+        inputs:
+          confirmation:
+            description: 'Build Docker Images'
+            required: true
+            default: 'no'
   
   jobs:
     update_and_push:
@@ -26,6 +32,11 @@
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Prompt for confirmation
+        if: ${{ github.ref == 'refs/heads/dev' && github.event.inputs.confirmation == 'yes' }}
+        working-directory: src
+        run: echo "User confirmed Build Docker Images"
   
       - name: Get Client counter value from DynamoDB 
         id: get_client_counter

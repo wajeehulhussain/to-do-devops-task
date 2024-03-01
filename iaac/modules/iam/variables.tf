@@ -1,7 +1,7 @@
 variable "eks_cluster_roles" {
   description = "List of EKS Cluster role names"
   type        = list(string)
-  default     = ["wajeehs-eks-pod-execution-role", "wajeehs-eks-cluster-role"]
+  default     = ["to-do-app-eks-pod-execution-role", "to-do-app-eks-cluster-role"]
 }
 
 variable "owner" {
