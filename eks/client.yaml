@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client
-        image: 777229646641.dkr.ecr.us-east-1.amazonaws.com/wajeehs-ecr-repo:client-v$decremented_client_value
+        image: 683635622177.dkr.ecr.us-east-1.amazonaws.com/to-do-app-ecr-repo:client-v$decremented_client_value
         ports:
         - containerPort: 80
         envFrom:
